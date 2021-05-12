@@ -26,7 +26,7 @@ class TwitterClient():
 
         self.twitter_user = twitter_user
 
-
+# Obtenir les tweets sur la timeline d'un user 
     def get_user_timeline_tweets(self, num_tweets):
         tweets = [] 
         # Obtenir les tweets de la timeline du user (celui qui run le program par défaut)
@@ -34,6 +34,12 @@ class TwitterClient():
             tweets.append(tweet)
         return tweets
 
+# Obtenir les tweets sur la timeline de la page d'accueil quand on arrive sur Twitter
+    def get_home_timeline_tweets(self, num_tweets):
+        home_timeline_tweets = []
+        for tweet in Cursor((self.twitter_client.home_timeline).items(num_tweets)):
+            home_timeline_tweets.append(tweet)
+        return home_timeline_tweets
 
 
 
