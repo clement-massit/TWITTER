@@ -48,6 +48,7 @@ def check_if_in_city(city):
 			print('yes bg')
 		else:
 			print("le tweet n'y est pas dedans connard")
+			
 	# for tweet in list_tweets:
 	# 	if tweet[-2] == city:
 	# 		return tweet
