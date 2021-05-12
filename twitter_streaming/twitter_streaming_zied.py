@@ -1,3 +1,7 @@
+# Pour créer des data frames
+import pandas as pd
+
+
 from tweepy import API 
 from tweepy import Cursor 
 
@@ -10,7 +14,7 @@ from tweepy import OAuthHandler
 from tweepy import Stream
 
 # On importe les credentials
-from twitter_streaming import credentials 
+import credentials
 
 
 
@@ -25,6 +29,10 @@ class TwitterClient():
         self.twitter_client = API(self.auth)
 
         self.twitter_user = twitter_user
+
+    def get_twitter_client_api(self):
+        return self.twitter_client
+
 
 # Obtenir les tweets sur la timeline d'un user 
     def get_user_timeline_tweets(self, num_tweets):
@@ -115,15 +123,41 @@ class TwitterListener(StreamListener):
 
 
 # Création d'une classe pour analyser les tweets
-
 class TweetAnalyzer():
-    
+    # Conversion d'un tweet en une data frame
+    def tweets_to_data_frame(self, tweets):
+        # On va utiliser la méthode DataFrame() de Pandas pour créer une data frame
+        # On va incrémenter notre data frame des textes des différents tweets de notre liste "tweets"
+        df = pd.DataFrame(data=[tweet.text for tweet in tweets], columns=['Tweets'])
+        return df
 
 
+
+    pass
 
 
 if __name__ == "__main__":
 
+    twitter_client = TwitterClient()
+    tweet_analyzer = TweetAnalyzer()
+
+    api = twitter_client.get_twitter_client_api()
+
+    tweets = api.user_timeline(screen_name="BillGates", count=1)
+
+    # Print l'ensemble des données disponible pour 1 tweet, utile notamment pour savoir quelles informations on va pouvoir extraire
+    # print(dir(tweets[0]))
+    # On a donc accès à tout l'ensemble de données comme si on accédait aux éléments d'une liste
+    # print(tweet[0].id) # Retourne l'id du premier tweet par exemple 
+
+
+  #  df = tweet_analyzer.tweets_to_data_frame(tweets)
+
+
+
+   
+
+'''
     hash_tag_list = ['','','']
     fetched_tweets_filename = "tweets.json"
 
@@ -135,7 +169,7 @@ if __name__ == "__main__":
 # On définit un objet Streamer
     twitter_streamer = TwitterStreamer()
     twitter_streamer.stream_tweets(fetched_tweets_filename, hash_tag_list)
-
+'''
 
 
  
