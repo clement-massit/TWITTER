@@ -21,7 +21,7 @@ import credentials
 
 
 
-# Création d'une classe réservée à l'authentification
+# # # # Création d'une classe réservée à l'authentification # # # #
 class TwitterAuthenticator():
 
     def authenticate_twitter_app(self):
@@ -31,8 +31,9 @@ class TwitterAuthenticator():
 
         return auth
 
-# Création d'une classe réservée à l'interaction avec le client Tiwtter
 
+
+# # # # Création d'une classe réservée à l'interaction avec le client Tiwtter # # # #
 class TwitterClient():
 
     def __init__(self, twitter_user=None):
@@ -61,7 +62,7 @@ class TwitterClient():
         return home_timeline_tweets
 
 
-# On crée une classe de streamer 
+# # # #  On crée une classe de streamer # # # #
 class TwitterStreamer():
     '''
     Permet le streaming et le traitement de tweets en live
@@ -84,8 +85,8 @@ class TwitterStreamer():
         stream.filter(track = hash_tag_list)
 
 
-# Création d'une classe qui hérite de StreamListener et va nous permettre d'afficher les tweets
 
+# # # # Création d'une classe qui hérite de StreamListener et va nous permettre d'afficher les tweets # # # #
 class TwitterListener(StreamListener):
     '''
     Un listener classique que affiche les tweets reçus
@@ -119,7 +120,7 @@ class TwitterListener(StreamListener):
         print(status)
 
 
-# Création d'une classe pour analyser les tweets
+# # # # Création d'une classe pour analyser les tweets # # # #
 class TweetAnalyzer():
     # Conversion d'un tweet en une data frame
     def tweets_to_data_frame(self, tweets):
@@ -138,54 +139,54 @@ class TweetAnalyzer():
         df['places'] = np.array([tweet.place for tweet in tweets])
 
         df['dates'] = np.array([tweet.created_at for tweet in tweets])
-
-        df['author'] = np.array([tweet.author for tweet in tweets])
-        df['user'] = np.array([tweet.user for tweet in tweets])
+        df['user'] = np.array([tweet.user.screen_name for tweet in tweets])
 
         return df
 
-
-
-    pass
+   
 
 
 if __name__ == "__main__":
+
+    # hash_tag_list = ['oui','paris']
+    # fetched_tweets_filename = "tweets.json"
 
     twitter_client = TwitterClient()
     tweet_analyzer = TweetAnalyzer()
 
     api = twitter_client.get_twitter_client_api()
-
-    tweets = api.user_timeline(screen_name="", count=5)
-
-    # Print l'ensemble des données disponible pour 1 tweet, utile notamment pour savoir quelles informations on va pouvoir extraire
-    # print(dir(tweets[0]))
-    # On a donc accès à tout l'ensemble de données comme si on accédait aux éléments d'une liste
-    # print(tweet[0].id) # Retourne l'id du premier tweet par exemple 
-
+    tweets = api.user_timeline(screen_name="BillGates", count=20)
 
     df = tweet_analyzer.tweets_to_data_frame(tweets)
 
-    #print(df.head(10))
-
-
-    hash_tag_list = ['annecy','paris']
-    fetched_tweets_filename = "tweets.json"
-
-   
-
-
-
+    print(df)
+    
 
 # # On définit un twitter client
 #     twitter_client = TwitterClient('BillGates')
 #     print(twitter_client.get_user_timeline_tweets(5))
 
 
-# # On définit un objet Streamer
-    twitter_streamer = TwitterStreamer()
-    twitter_streamer.stream_tweets(fetched_tweets_filename, hash_tag_list)
+    # twitter_listener = TwitterListener(fetched_tweets_filename)
+    # twitter_listener.on_data(df)
 
+
+# # On définit un objet Streamer
+    # twitter_streamer = TwitterStreamer()
+    # twitter_streamer.stream_tweets(fetched_tweets_filename, hash_tag_list)
+
+
+
+    # tweets = api.user_timeline(screen_name="", count=1)
+    # Print l'ensemble des données disponible pour 1 tweet, utile notamment pour savoir quelles informations on va pouvoir extraire
+    # print(dir(tweets[0]))
+    # On a donc accès à tout l'ensemble de données comme si on accédait aux éléments d'une liste
+    #print(tweets[0].id) # Retourne l'id du premier tweet par exemple 
+
+
+    # df = tweet_analyzer.tweets_to_data_frame(tweets)
+    # print(df)
+    #print(df.head(10))
 
 
  
