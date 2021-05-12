@@ -1,13 +1,11 @@
 # Pour créer des data frames
 import pandas as pd
 
-<<<<<<< Updated upstream
+
 # Pour manipuler les données + facilement 
 import numpy as np
+import mysql.connector as MySQLdb
 
-
-=======
->>>>>>> Stashed changes
 from tweepy import API 
 from tweepy import Cursor 
 
@@ -47,6 +45,11 @@ class TwitterClient():
     def get_twitter_client_api(self):
         return self.twitter_client
 
+    def get_user_timeline_tweets(self, num_tweets):
+        tweets = []
+        for tweet in Cursor(self.twitter_client.user_timeline, id=self.twitter_user).items(num_tweets):
+            tweets.append(tweet)
+        return tweets
 
 
 # On crée une classe de streamer 
@@ -136,14 +139,31 @@ class TweetAnalyzer():
 
     pass
 
+#
+clients = ['googlemaps', 'BillGates']
+hash_tag_list = ['annecy','Chambéry','Grenoble']
 
 if __name__ == "__main__":
 
-    hash_tag_list = ['donald trump','barack obama','google maps']
+     
     fetched_tweets_filename = "tweets.json"
 
     twitter_streamer = TwitterStreamer()
-    twitter_streamer.stream_tweets(fetched_tweets_filename, hash_tag_list)
+    twitter_streamer.stream_tweets(fetched_tweets_filename, hash_tag_list).geo
+
+    ###### CE QUI NOUS INTERESSE #####
+    #geo,coordinates, place, id_place
+    #id_tweet, created_at, user_name, text
+    # for client in clients:
+
+    #     twitter_client = TwitterClient(client)
+        
+    #     for tweet in twitter_client.get_user_timeline_tweets(60):
+            
+    #         print(tweet.geo,end="")
+
+
+
 
 
     # Print l'ensemble des données disponible pour 1 tweet, utile notamment pour savoir quelles informations on va pouvoir extraire
