@@ -18,7 +18,15 @@ import credentials
 
 
 
+# Création d'une classe réservée à l'authentification
+class TwitterAuthenticator():
 
+    def authenticate_twitter_app(self):
+
+        auth = OAuthHandler(credentials.CONSUMER_KEY, credentials.CONSUMER_SECRET)
+        auth.set_access_token(credentials.ACCESS_TOKEN, credentials.ACCESS_SECRET)
+
+        return auth
 
 # Création d'une classe réservée à l'interaction avec le client Tiwtter
 
@@ -48,20 +56,6 @@ class TwitterClient():
         for tweet in Cursor(self.twitter_client.home_timeline, id=self.twitter_user).items(num_tweets):
             home_timeline_tweets.append(tweet)
         return home_timeline_tweets
-
-
-
- 
-
-# Création d'une classe réservée à l'authentification
-class TwitterAuthenticator():
-
-    def authenticate_twitter_app(self):
-
-        auth = OAuthHandler(credentials.CONSUMER_KEY, credentials.CONSUMER_SECRET)
-        auth.set_access_token(credentials.ACCESS_TOKEN, credentials.ACCESS_SECRET)
-
-        return auth
 
 
 # On crée une classe de streamer 
