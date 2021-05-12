@@ -43,7 +43,7 @@ class TwitterClient():
 
 
 
-
+ 
 
 # Création d'une classe réservée à l'authentification
 class TwitterAuthenticator():
@@ -112,6 +112,14 @@ class TwitterListener(StreamListener):
             return False
         # on affiche la variable status, qui affichera la nature de l'erreur
         print(status)
+
+
+# Création d'une classe pour analyser les tweets
+
+class TweetAnalyzer():
+    
+
+
 
 
 if __name__ == "__main__":
