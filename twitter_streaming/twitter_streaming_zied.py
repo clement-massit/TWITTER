@@ -1,10 +1,13 @@
 # Pour créer des data frames
 import pandas as pd
 
+<<<<<<< Updated upstream
 # Pour manipuler les données + facilement 
 import numpy as np
 
 
+=======
+>>>>>>> Stashed changes
 from tweepy import API 
 from tweepy import Cursor 
 
@@ -44,21 +47,6 @@ class TwitterClient():
     def get_twitter_client_api(self):
         return self.twitter_client
 
-
-# Obtenir les tweets sur la timeline d'un user 
-    def get_user_timeline_tweets(self, num_tweets):
-        tweets = [] 
-        # Obtenir les tweets de la timeline du user (celui qui run le program par défaut)
-        for tweet in Cursor(self.twitter_client.user_timeline, id=self.twitter_user).items(num_tweets):
-            tweets.append(tweet)
-        return tweets
-
-# Obtenir les tweets sur la timeline de la page d'accueil quand on arrive sur Twitter
-    def get_home_timeline_tweets(self, num_tweets):
-        home_timeline_tweets = []
-        for tweet in Cursor(self.twitter_client.home_timeline, id=self.twitter_user).items(num_tweets):
-            home_timeline_tweets.append(tweet)
-        return home_timeline_tweets
 
 
 # On crée une classe de streamer 
@@ -106,7 +94,7 @@ class TwitterListener(StreamListener):
             return True
 
         # Si ça ne marche pas, on retourne l'erreur
-        except BaseException :
+        except BaseException:
             print("Erreur dans on_data: %s" %str(BaseException))
         return True
     
@@ -151,12 +139,12 @@ class TweetAnalyzer():
 
 if __name__ == "__main__":
 
-    twitter_client = TwitterClient()
-    tweet_analyzer = TweetAnalyzer()
+    hash_tag_list = ['donald trump','barack obama','google maps']
+    fetched_tweets_filename = "tweets.json"
 
-    api = twitter_client.get_twitter_client_api()
+    twitter_streamer = TwitterStreamer()
+    twitter_streamer.stream_tweets(fetched_tweets_filename, hash_tag_list)
 
-    tweets = api.user_timeline(screen_name="", count=5)
 
     # Print l'ensemble des données disponible pour 1 tweet, utile notamment pour savoir quelles informations on va pouvoir extraire
     # print(dir(tweets[0]))
@@ -164,13 +152,13 @@ if __name__ == "__main__":
     # print(tweet[0].id) # Retourne l'id du premier tweet par exemple 
 
 
-    df = tweet_analyzer.tweets_to_data_frame(tweets)
+    # df = tweet_analyzer.tweets_to_data_frame(tweets)
 
-    #print(df.head(10))
+    # #print(df.head(10))
 
 
-    hash_tag_list = ['annecy','paris']
-    fetched_tweets_filename = "tweets.json"
+    # hash_tag_list = ['annecy','paris']
+    # fetched_tweets_filename = "tweets.json"
 
    
 
@@ -183,8 +171,8 @@ if __name__ == "__main__":
 
 
 # # On définit un objet Streamer
-    twitter_streamer = TwitterStreamer()
-    twitter_streamer.stream_tweets(fetched_tweets_filename, hash_tag_list)
+    # twitter_streamer = TwitterStreamer()
+    # twitter_streamer.stream_tweets(fetched_tweets_filename, hash_tag_list)
 
 
 
