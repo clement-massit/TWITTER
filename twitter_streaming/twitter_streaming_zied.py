@@ -37,7 +37,7 @@ class TwitterClient():
 # Obtenir les tweets sur la timeline de la page d'accueil quand on arrive sur Twitter
     def get_home_timeline_tweets(self, num_tweets):
         home_timeline_tweets = []
-        for tweet in Cursor((self.twitter_client.home_timeline).items(num_tweets)):
+        for tweet in Cursor(self.twitter_client.home_timeline, id=self.twitter_user).items(num_tweets):
             home_timeline_tweets.append(tweet)
         return home_timeline_tweets
 
