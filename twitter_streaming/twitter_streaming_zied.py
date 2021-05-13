@@ -2,6 +2,10 @@
 import pandas as pd
 
 
+# Pour manipuler les données + facilement 
+import numpy as np
+import mysql.connector as MySQLdb
+
 from tweepy import API 
 from tweepy import Cursor 
 
@@ -41,21 +45,11 @@ class TwitterClient():
     def get_twitter_client_api(self):
         return self.twitter_client
 
-
-# Obtenir les tweets sur la timeline d'un user 
     def get_user_timeline_tweets(self, num_tweets):
-        tweets = [] 
-        # Obtenir les tweets de la timeline du user (celui qui run le program par défaut)
+        tweets = []
         for tweet in Cursor(self.twitter_client.user_timeline, id=self.twitter_user).items(num_tweets):
             tweets.append(tweet)
         return tweets
-
-# Obtenir les tweets sur la timeline de la page d'accueil quand on arrive sur Twitter
-    def get_home_timeline_tweets(self, num_tweets):
-        home_timeline_tweets = []
-        for tweet in Cursor(self.twitter_client.home_timeline, id=self.twitter_user).items(num_tweets):
-            home_timeline_tweets.append(tweet)
-        return home_timeline_tweets
 
 
 # On crée une classe de streamer 
@@ -79,6 +73,7 @@ class TwitterStreamer():
         # On se doit de trier les tweets que l'on souhaite récupérer, on utiliser ainsi la méthode filter de la classe Stream
         # La liste track est une liste de keywords 
         stream.filter(track = hash_tag_list)
+        
 
 
 # Création d'une classe qui hérite de StreamListener et va nous permettre d'afficher les tweets
@@ -103,7 +98,7 @@ class TwitterListener(StreamListener):
             return True
 
         # Si ça ne marche pas, on retourne l'erreur
-        except BaseException :
+        except BaseException:
             print("Erreur dans on_data: %s" %str(BaseException))
         return True
     
@@ -121,23 +116,56 @@ class TweetAnalyzer():
     # Conversion d'un tweet en une data frame
     def tweets_to_data_frame(self, tweets):
         # On va utiliser la méthode DataFrame() de Pandas pour créer une data frame
+        
         # On va incrémenter notre data frame des textes des différents tweets de notre liste "tweets"
         df = pd.DataFrame(data=[tweet.text for tweet in tweets], columns=['Tweets'])
+
+        # On va chercher à stocker les id de chaque tweet dans la liste des tweets "tweets" dans un tableau numpy  
+        df['id'] = np.array([tweet.id for tweet in tweets])
+
+        # De même pour les autres données ..
+
+        df['geo'] = np.array([tweet.geo for tweet in tweets])
+        df['coordinates'] = np.array([tweet.coordinates for tweet in tweets])
+        df['places'] = np.array([tweet.place for tweet in tweets])
+
+        df['dates'] = np.array([tweet.created_at for tweet in tweets])
+
+        df['author'] = np.array([tweet.author for tweet in tweets])
+        df['user'] = np.array([tweet.user for tweet in tweets])
+
         return df
 
 
 
     pass
 
+#
+clients = ['googlemaps', 'BillGates']
+hash_tag_list = ['annecy','Chambéry','Grenoble','Toulouse','google maps','Paris','Voiron','openstreetmap']
 
 if __name__ == "__main__":
 
-    twitter_client = TwitterClient()
-    tweet_analyzer = TweetAnalyzer()
+     
+    fetched_tweets_filename = "tweets.json"
 
-    api = twitter_client.get_twitter_client_api()
+    twitter_streamer = TwitterStreamer()
+    twitter_streamer.stream_tweets(fetched_tweets_filename, hash_tag_list)
 
-    tweets = api.user_timeline(screen_name="BillGates", count=1)
+    ###### CE QUI NOUS INTERESSE #####
+    #geo,coordinates, place, id_place
+    #id_tweet, created_at, user_name, text
+    # for client in clients:
+
+    #     twitter_client = TwitterClient(client)
+        
+    #     for tweet in twitter_client.get_user_timeline_tweets(60):
+            
+    #         print(tweet.geo,end="")
+
+
+
+
 
     # Print l'ensemble des données disponible pour 1 tweet, utile notamment pour savoir quelles informations on va pouvoir extraire
     # print(dir(tweets[0]))
@@ -145,25 +173,28 @@ if __name__ == "__main__":
     # print(tweet[0].id) # Retourne l'id du premier tweet par exemple 
 
 
-  #  df = tweet_analyzer.tweets_to_data_frame(tweets)
+    # df = tweet_analyzer.tweets_to_data_frame(tweets)
+
+    # #print(df.head(10))
 
 
+    # hash_tag_list = ['annecy','paris']
+    # fetched_tweets_filename = "tweets.json"
 
    
 
-'''
-    hash_tag_list = ['','','']
-    fetched_tweets_filename = "tweets.json"
-
-# On définit un twitter client
-    twitter_client = TwitterClient('BillGates')
-    print(twitter_client.get_user_timeline_tweets(5))
 
 
-# On définit un objet Streamer
-    twitter_streamer = TwitterStreamer()
-    twitter_streamer.stream_tweets(fetched_tweets_filename, hash_tag_list)
-'''
+
+# # On définit un twitter client
+#     twitter_client = TwitterClient('BillGates')
+#     print(twitter_client.get_user_timeline_tweets(5))
+
+
+# # On définit un objet Streamer
+    # twitter_streamer = TwitterStreamer()
+    # twitter_streamer.stream_tweets(fetched_tweets_filename, hash_tag_list)
+
 
 
  
