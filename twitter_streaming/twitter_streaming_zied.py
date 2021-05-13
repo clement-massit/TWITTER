@@ -69,7 +69,7 @@ class TwitterStreamer():
         
         # On instancie un objet de la classe Stream, qui va nous permettre de récupérer les tweets
         stream = Stream(auth, listener)
-
+        
         # On se doit de trier les tweets que l'on souhaite récupérer, on utiliser ainsi la méthode filter de la classe Stream
         # La liste track est une liste de keywords 
         stream.filter(track = hash_tag_list)
@@ -85,8 +85,6 @@ class TwitterListener(StreamListener):
     
     def __init__(self, fetched_tweets_filename):
         self.fetched_tweets_filename = fetched_tweets_filename
-
-
 
     # Gère la récupération des données
     def on_data(self, data):
@@ -112,56 +110,61 @@ class TwitterListener(StreamListener):
 
 
 # Création d'une classe pour analyser les tweets
+import json
+tw = {}
 class TweetAnalyzer():
-    # Conversion d'un tweet en une data frame
-    def tweets_to_data_frame(self, tweets):
-        # On va utiliser la méthode DataFrame() de Pandas pour créer une data frame
-        
-        # On va incrémenter notre data frame des textes des différents tweets de notre liste "tweets"
-        df = pd.DataFrame(data=[tweet.text for tweet in tweets], columns=['Tweets'])
 
-        # On va chercher à stocker les id de chaque tweet dans la liste des tweets "tweets" dans un tableau numpy  
-        df['id'] = np.array([tweet.id for tweet in tweets])
+    def get_infos_tweets(self, fetched_tweets_filename, tweets):
+        c = 0 
+        d = 0
+        for tweet in tweets:
+            c += 1 
+            if tweet.geo:
+                d += 1
+                
+                tw["id"] = tweet.id
+                tw["dates"] =  str(tweet.created_at)
+                tw['user_name'] = tweet.user.name               
+                tw['text'] = tweet.text
+                tw['latitude'] = tweet.geo['coordinates'][0]
+                tw['longitude'] = tweet.geo['coordinates'][1]
+                tw["place"] = tweet.place
+                tw["id_place"] = tweet.place
+                print(c, d , 'yes', tweet.geo)
 
-        # De même pour les autres données ..
+        # with open(fetched_tweets_filename, 'w') as tf:
+        #     json.dump(tw, tf)
 
-        df['geo'] = np.array([tweet.geo for tweet in tweets])
-        df['coordinates'] = np.array([tweet.coordinates for tweet in tweets])
-        df['places'] = np.array([tweet.place for tweet in tweets])
-
-        df['dates'] = np.array([tweet.created_at for tweet in tweets])
-
-        df['author'] = np.array([tweet.author for tweet in tweets])
-        df['user'] = np.array([tweet.user for tweet in tweets])
-
-        return df
+                # Requête SQL (a quoter si on veut pas insérer dans la base de données)    
+                #sql = "INSERT INTO tweets_streaming(`id_tweet`, `created_at`, `user_name`, `text_contenu`, `latitude`, `longitude`, `place`, `id_place`) VALUES(%s, %s, %s, %s, %s, %s, %s, %s)"
+			    #values = (tweet.created_at, tweet.user.name, tweet.full_text, tweet.geo['coordinates'][0], tweet.geo['coordinates'][1], tweet.place.name,tweet.place.id)
+        print('c = ', c, 'd = ', d)
+        return tw
+    
 
 
-
-    pass
-
-#
-clients = ['googlemaps', 'BillGates']
+clients = ['googlemaps', 'weliketravel','elonmusk','sct_r']
 hash_tag_list = ['annecy','Chambéry','Grenoble','Toulouse','google maps','Paris','Voiron','openstreetmap']
 
 if __name__ == "__main__":
+    
 
      
-    fetched_tweets_filename = "tweets.json"
+    fetched_tweets_filename = 'tweets.json'
 
-    twitter_streamer = TwitterStreamer()
-    twitter_streamer.stream_tweets(fetched_tweets_filename, hash_tag_list)
+    #     twitter_streamer = TwitterStreamer()
+    #     twitter_streamer.stream_tweets(fetched_tweets_filename, hash_tag_list)
 
-    ###### CE QUI NOUS INTERESSE #####
-    #geo,coordinates, place, id_place
-    #id_tweet, created_at, user_name, text
-    # for client in clients:
+    
+    tweet_analyze = TweetAnalyzer()
 
-    #     twitter_client = TwitterClient(client)
+    
+    for client in clients:
+        twitter_client = TwitterClient(client)
+        tweets = twitter_client.get_user_timeline_tweets(4000)
+        tw = tweet_analyze.get_infos_tweets(fetched_tweets_filename, tweets)
         
-    #     for tweet in twitter_client.get_user_timeline_tweets(60):
-            
-    #         print(tweet.geo,end="")
+        
 
 
 
@@ -194,7 +197,3 @@ if __name__ == "__main__":
 # # On définit un objet Streamer
     # twitter_streamer = TwitterStreamer()
     # twitter_streamer.stream_tweets(fetched_tweets_filename, hash_tag_list)
-
-
-
- 
