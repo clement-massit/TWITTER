@@ -73,6 +73,7 @@ class TwitterStreamer():
         # On se doit de trier les tweets que l'on souhaite récupérer, on utiliser ainsi la méthode filter de la classe Stream
         # La liste track est une liste de keywords 
         stream.filter(track = hash_tag_list)
+        
 
 
 # Création d'une classe qui hérite de StreamListener et va nous permettre d'afficher les tweets
@@ -141,7 +142,7 @@ class TweetAnalyzer():
 
 #
 clients = ['googlemaps', 'BillGates']
-hash_tag_list = ['annecy','Chambéry','Grenoble']
+hash_tag_list = ['annecy','Chambéry','Grenoble','Toulouse','google maps','Paris','Voiron','openstreetmap']
 
 if __name__ == "__main__":
 
@@ -149,7 +150,7 @@ if __name__ == "__main__":
     fetched_tweets_filename = "tweets.json"
 
     twitter_streamer = TwitterStreamer()
-    twitter_streamer.stream_tweets(fetched_tweets_filename, hash_tag_list).geo
+    twitter_streamer.stream_tweets(fetched_tweets_filename, hash_tag_list)
 
     ###### CE QUI NOUS INTERESSE #####
     #geo,coordinates, place, id_place
