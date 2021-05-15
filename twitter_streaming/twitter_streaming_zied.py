@@ -142,7 +142,7 @@ class TweetAnalyzer():
     def get_infos_tweets(self, tweets):
         tw = {}
        
-        print(len(tweets))
+        
         tw["dates"] =  tweets["created_at"]
         tw['user_name'] = tweets["user"]["name"]              
         tw['text'] = tweets["text"]
@@ -152,13 +152,7 @@ class TweetAnalyzer():
         tw["id_place"] = tweets["place"]["id"]
         
 
-        #         # Requête SQL (a quoter si on veut pas insérer dans la base de données)    
-        #         sql = "INSERT INTO tweets_streaming(`created_at`, `user_name`, `text_contenu`, `latitude`, `longitude`, `place`, `id_place`) VALUES(%s, %s, %s, %s, %s, %s, %s)"
-        #         values = (tweet.created_at, tweet.user.name, tweet.text, tweet.geo['coordinates'][0], tweet.geo['coordinates'][1], tweet.place.name,tweet.place.id)
-        #         curseur.execute(sql,values)
-	
-
-        # conn.commit()
+        
         return tw
 
 def open_json():
@@ -181,25 +175,50 @@ def open_json():
         try :
                 
             with open(path + str(file), 'r') as json_file:
-
+                
                 data = json.load(json_file)
                 
                 formated_json = tweet_analyze.get_infos_tweets(data)
             
             with open(path + str(file), 'w') as f: 
+                print('on est la')
                 f.write(json.dumps(formated_json))
                 print(" Le fichier " + file + "a bien été mis au bon format")
+
+                
+            
         except KeyError:
+            
             print("Le fichier " + file + " est déjà au bon format")
 
     return True
 
+def insert_infos_into_db():
+    path = "C://wamp64//www//TWITTER//tweets json format//"
+    #list_json is the list of all json files there are in the 'tweets json format'   
+    list_json = os.listdir(path)    
+    for file in list_json:
+        with open(path + str(file), 'r') as json_file:
+            tweet = json.load(json_file)
+            
+            # Requête SQL (a quoter si on veut pas insérer dans la base de données)    
+            sql = "INSERT INTO tweets_streaming(`created_at`, `user_name`, `text_contenu`, `latitude`, `longitude`, `place`, `id_place`) VALUES(%s, %s, %s, %s, %s, %s, %s)"
+            values = (tweet["dates"], tweet["user_name"], tweet["text"], tweet['latitude'], tweet['longitude'], tweet["place"]["name"],tweet["place"]["id"])
+            curseur.execute(sql,values)
+	
+
+        conn.commit()
+    return True
 
 i = 0
 fetched_tweets_filename = 'tweets'
 clients = ['googlemaps', 'weliketravel','elonmusk','sct_r']
-hash_tag_list = ['Annecy','Chambéry','Grenoble','Toulouse','GoogleMaps','Paris', 'Marseille', 'Ascension'
+
+
+hash_tag_list2 = ['Annecy','Chambéry','Grenoble','Toulouse','GoogleMaps','Paris', 'Marseille', 'Ascension'
 'Voiron','openstreetmap', 'geolocalization', 'géolocalisation', 'human', 'jobs', 'travel', 'innovation','Netflix']
+
+hash_tag_list = ['IvrysurSeine', 'Le Mans', 'KohLanta']
 
 def Stream__via_hash_tag_method():
     ##########    TWEET STREAM FROM HASH TAG    ##########
@@ -210,7 +229,7 @@ def Stream__via_hash_tag_method():
 
 if __name__ == "__main__":
     Stream__via_hash_tag_method()
-
+    # print(insert_infos_into_db())
     
 
 
