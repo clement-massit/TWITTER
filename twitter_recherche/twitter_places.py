@@ -58,6 +58,6 @@ def append_tweet_place():
 	# 				)
 	# 			curseur.execute(sql,values)
 	# conn.commit()
-	# return 'done'
+	return 'done'
 print(append_tweet_place())
 

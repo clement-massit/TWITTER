@@ -6,8 +6,7 @@ except ImportError:
 
 # Import the tweepy library
 import tweepy
-import mysql.connector as MySQLdb
-import folium 
+import mysql.connector as MySQLdb 
 
 # Variables that contains the user credentials to access Twitter API 
 ACCESS_TOKEN = '1179115613966536706-43kJxODf465JpsC1LTxkpWGzoSjKv1'
