@@ -1,11 +1,14 @@
 # Pour créer des data frames
+from datetime import time
 import pandas as pd
 
 
 # Pour manipuler les données + facilement 
 import numpy as np
 import mysql.connector as MySQLdb
-
+import csv
+import os
+import time
 from tweepy import API 
 from tweepy import Cursor 
 
@@ -21,6 +24,10 @@ from tweepy import Stream
 import credentials
 
 
+### CONNECTION A LA BASE DE DONNEES
+conn = MySQLdb.connect(user = 'root', host = 'localhost', database = 'db_twitter', charset = 'utf8mb4')
+
+curseur = conn.cursor()
 
 # Création d'une classe réservée à l'authentification
 class TwitterAuthenticator():
@@ -70,6 +77,7 @@ class TwitterStreamer():
         # On instancie un objet de la classe Stream, qui va nous permettre de récupérer les tweets
         stream = Stream(auth, listener)
         
+        
         # On se doit de trier les tweets que l'on souhaite récupérer, on utiliser ainsi la méthode filter de la classe Stream
         # La liste track est une liste de keywords 
         stream.filter(track = hash_tag_list)
@@ -88,12 +96,20 @@ class TwitterListener(StreamListener):
 
     # Gère la récupération des données
     def on_data(self, data):
+        global i
+        i += 1 
         try:
-            print(data)
-            # On écrit les tweets dans un fichiers texte en continu
-            with open(self.fetched_tweets_filename, 'a') as tf:
-                tf.write(data)
-            return True
+            while True:
+                tweet = data.split('},"geo":')[1].split(',"coordinates"')[0]
+                if tweet != 'null':
+
+                    print(tweet)
+                    # On écrit les tweets dans un fichiers texte en continu
+                    with open('C://wamp64//www//TWITTER//tweets json format//tweet_' + str(i) + '.json', 'a') as tf:
+                        tf.write(data)
+                        tf.write('\n')
+                        tf.close()
+                return True
 
         # Si ça ne marche pas, on retourne l'erreur
         except BaseException:
@@ -107,6 +123,9 @@ class TwitterListener(StreamListener):
             return False
         # on affiche la variable status, qui affichera la nature de l'erreur
         print(status)
+
+    def on_status(self, status):
+        print(status.text, file=self.output_file)
 
 
 # Création d'une classe pour analyser les tweets
@@ -122,78 +141,60 @@ class TweetAnalyzer():
             if tweet.geo:
                 d += 1
                 
-                tw["id"] = tweet.id
                 tw["dates"] =  str(tweet.created_at)
                 tw['user_name'] = tweet.user.name               
                 tw['text'] = tweet.text
                 tw['latitude'] = tweet.geo['coordinates'][0]
                 tw['longitude'] = tweet.geo['coordinates'][1]
                 tw["place"] = tweet.place
-                tw["id_place"] = tweet.place
+                tw["id_place"] = tweet.place.id
                 print(c, d , 'yes', tweet.geo)
 
-        # with open(fetched_tweets_filename, 'w') as tf:
-        #     json.dump(tw, tf)
-
                 # Requête SQL (a quoter si on veut pas insérer dans la base de données)    
-                #sql = "INSERT INTO tweets_streaming(`id_tweet`, `created_at`, `user_name`, `text_contenu`, `latitude`, `longitude`, `place`, `id_place`) VALUES(%s, %s, %s, %s, %s, %s, %s, %s)"
-			    #values = (tweet.created_at, tweet.user.name, tweet.full_text, tweet.geo['coordinates'][0], tweet.geo['coordinates'][1], tweet.place.name,tweet.place.id)
+                sql = "INSERT INTO tweets_streaming(`created_at`, `user_name`, `text_contenu`, `latitude`, `longitude`, `place`, `id_place`) VALUES(%s, %s, %s, %s, %s, %s, %s)"
+                values = (tweet.created_at, tweet.user.name, tweet.text, tweet.geo['coordinates'][0], tweet.geo['coordinates'][1], tweet.place.name,tweet.place.id)
+                curseur.execute(sql,values)
+	
+
+        conn.commit()
         print('c = ', c, 'd = ', d)
         return tw
-    
 
 
-clients = ['googlemaps', 'weliketravel','elonmusk','sct_r']
-hash_tag_list = ['annecy','Chambéry','Grenoble','Toulouse','google maps','Paris','Voiron','openstreetmap']
+
+
+i = 0
+#clients = ['googlemaps', 'weliketravel','elonmusk','sct_r']
+clients = ['sct_r']
+hash_tag_list = ['Annecy','Chambéry','Grenoble','Toulouse','GoogleMaps','Paris', 'Marseille', 'Ascension'
+'Voiron','openstreetmap', 'geolocalization', 'géolocalisation', 'human', 'jobs', 'travel', 'innovation','Netflix']
 
 if __name__ == "__main__":
+    fetched_tweets_filename = 'tweets.csv'
+
+    ##########    TWEET STREAM FROM HASH TAG    ##########
+    
+    
+    twitter_streamer = TwitterStreamer()
+    stream_listener = StreamListener()
+    
+    twitter_streamer.stream_tweets(fetched_tweets_filename, hash_tag_list)
+
+
+    #=====================
     
 
-     
-    fetched_tweets_filename = 'tweets.json'
 
-    #     twitter_streamer = TwitterStreamer()
-    #     twitter_streamer.stream_tweets(fetched_tweets_filename, hash_tag_list)
-
+    ##########    TWEET TIMELINE STREAM    ##########
+    # tweet_analyze = TweetAnalyzer()
     
-    tweet_analyze = TweetAnalyzer()
-
-    
-    for client in clients:
-        twitter_client = TwitterClient(client)
-        tweets = twitter_client.get_user_timeline_tweets(4000)
-        tw = tweet_analyze.get_infos_tweets(fetched_tweets_filename, tweets)
+    # for client in clients:
+    #     twitter_client = TwitterClient(client)
+    #     tweets = twitter_client.get_user_timeline_tweets(500)
+    #     tw = tweet_analyze.get_infos_tweets(fetched_tweets_filename, tweets)
         
         
 
 
 
 
-
-    # Print l'ensemble des données disponible pour 1 tweet, utile notamment pour savoir quelles informations on va pouvoir extraire
-    # print(dir(tweets[0]))
-    # On a donc accès à tout l'ensemble de données comme si on accédait aux éléments d'une liste
-    # print(tweet[0].id) # Retourne l'id du premier tweet par exemple 
-
-
-    # df = tweet_analyzer.tweets_to_data_frame(tweets)
-
-    # #print(df.head(10))
-
-
-    # hash_tag_list = ['annecy','paris']
-    # fetched_tweets_filename = "tweets.json"
-
-   
-
-
-
-
-# # On définit un twitter client
-#     twitter_client = TwitterClient('BillGates')
-#     print(twitter_client.get_user_timeline_tweets(5))
-
-
-# # On définit un objet Streamer
-    # twitter_streamer = TwitterStreamer()
-    # twitter_streamer.stream_tweets(fetched_tweets_filename, hash_tag_list)
