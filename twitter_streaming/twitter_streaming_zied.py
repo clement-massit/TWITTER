@@ -6,9 +6,14 @@ import pandas as pd
 # Pour manipuler les données + facilement 
 import numpy as np
 import mysql.connector as MySQLdb
-import csv
+
 import os
-import time
+import sys
+try:
+    import json
+except ImportError:
+    import simplejson as json
+
 from tweepy import API 
 from tweepy import Cursor 
 
@@ -114,6 +119,9 @@ class TwitterListener(StreamListener):
         # Si ça ne marche pas, on retourne l'erreur
         except BaseException:
             print("Erreur dans on_data: %s" %str(BaseException))
+        except KeyboardInterrupt:
+            print("La recherce de Tweets via Streaming a été interrompue")
+            
         return True
     
     # méthode qui intervient lorsqu'il y a une erreur
@@ -129,59 +137,84 @@ class TwitterListener(StreamListener):
 
 
 # Création d'une classe pour analyser les tweets
-import json
-tw = {}
 class TweetAnalyzer():
 
-    def get_infos_tweets(self, fetched_tweets_filename, tweets):
-        c = 0 
-        d = 0
-        for tweet in tweets:
-            c += 1 
-            if tweet.geo:
-                d += 1
-                
-                tw["dates"] =  str(tweet.created_at)
-                tw['user_name'] = tweet.user.name               
-                tw['text'] = tweet.text
-                tw['latitude'] = tweet.geo['coordinates'][0]
-                tw['longitude'] = tweet.geo['coordinates'][1]
-                tw["place"] = tweet.place
-                tw["id_place"] = tweet.place.id
-                print(c, d , 'yes', tweet.geo)
+    def get_infos_tweets(self, tweets):
+        tw = {}
+       
+        print(len(tweets))
+        tw["dates"] =  tweets["created_at"]
+        tw['user_name'] = tweets["user"]["name"]              
+        tw['text'] = tweets["text"]
+        tw['latitude'] = tweets["geo"]['coordinates'][0]
+        tw['longitude'] = tweets["geo"]['coordinates'][1]
+        tw["place"] = tweets["place"]
+        tw["id_place"] = tweets["place"]["id"]
+        
 
-                # Requête SQL (a quoter si on veut pas insérer dans la base de données)    
-                sql = "INSERT INTO tweets_streaming(`created_at`, `user_name`, `text_contenu`, `latitude`, `longitude`, `place`, `id_place`) VALUES(%s, %s, %s, %s, %s, %s, %s)"
-                values = (tweet.created_at, tweet.user.name, tweet.text, tweet.geo['coordinates'][0], tweet.geo['coordinates'][1], tweet.place.name,tweet.place.id)
-                curseur.execute(sql,values)
+        #         # Requête SQL (a quoter si on veut pas insérer dans la base de données)    
+        #         sql = "INSERT INTO tweets_streaming(`created_at`, `user_name`, `text_contenu`, `latitude`, `longitude`, `place`, `id_place`) VALUES(%s, %s, %s, %s, %s, %s, %s)"
+        #         values = (tweet.created_at, tweet.user.name, tweet.text, tweet.geo['coordinates'][0], tweet.geo['coordinates'][1], tweet.place.name,tweet.place.id)
+        #         curseur.execute(sql,values)
 	
 
-        conn.commit()
-        print('c = ', c, 'd = ', d)
+        # conn.commit()
         return tw
 
+def open_json():
+    '''
+    this function will be used to open all the json files in 'tweets json format' and improves the format 
+    in order to keep the main information in the same json file.
+    for each 'file', we open it in order to get information then we use the 'get_infos_tweets()' function in order to 
+    improve the format
+    then we open the 'file' as writting method and replace the older information by the newest and then we will insert this into database
+    '''
+    tweet_analyze = TweetAnalyzer()
+    path = "C://wamp64//www//TWITTER//tweets json format//"
 
+    
+    #list_json is the list of all json files there are in the 'tweets json format'   
+    list_json = os.listdir(path)
+
+    
+    for file in list_json:
+        try :
+                
+            with open(path + str(file), 'r') as json_file:
+
+                data = json.load(json_file)
+                
+                formated_json = tweet_analyze.get_infos_tweets(data)
+            
+            with open(path + str(file), 'w') as f: 
+                f.write(json.dumps(formated_json))
+                print(" Le fichier " + file + "a bien été mis au bon format")
+        except KeyError:
+            print("Le fichier " + file + " est déjà au bon format")
+
+    return True
 
 
 i = 0
-#clients = ['googlemaps', 'weliketravel','elonmusk','sct_r']
-clients = ['sct_r']
+fetched_tweets_filename = 'tweets'
+clients = ['googlemaps', 'weliketravel','elonmusk','sct_r']
 hash_tag_list = ['Annecy','Chambéry','Grenoble','Toulouse','GoogleMaps','Paris', 'Marseille', 'Ascension'
 'Voiron','openstreetmap', 'geolocalization', 'géolocalisation', 'human', 'jobs', 'travel', 'innovation','Netflix']
 
-if __name__ == "__main__":
-    fetched_tweets_filename = 'tweets.csv'
-
+def Stream__via_hash_tag_method():
     ##########    TWEET STREAM FROM HASH TAG    ##########
-    
-    
     twitter_streamer = TwitterStreamer()
-    stream_listener = StreamListener()
-    
     twitter_streamer.stream_tweets(fetched_tweets_filename, hash_tag_list)
 
 
-    #=====================
+
+if __name__ == "__main__":
+    Stream__via_hash_tag_method()
+
+    
+
+
+
     
 
 
