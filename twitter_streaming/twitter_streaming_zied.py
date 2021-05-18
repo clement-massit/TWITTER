@@ -9,6 +9,7 @@ import mysql.connector as MySQLdb
 
 import os
 import sys
+import requests
 try:
     import json
 except ImportError:
@@ -104,17 +105,18 @@ class TwitterListener(StreamListener):
         global i
         i += 1 
         try:
-            while True:
-                tweet = data.split('},"geo":')[1].split(',"coordinates"')[0]
-                if tweet != 'null':
+            
+           
+            tweet = data.split('},"geo":')[1].split(',"coordinates"')[0]
+            if tweet != 'null':
 
-                    print(tweet)
-                    # On écrit les tweets dans un fichiers texte en continu
-                    with open('C://wamp64//www//TWITTER//tweets json format//tweet_' + str(i) + '.json', 'a') as tf:
-                        tf.write(data)
-                        tf.write('\n')
-                        tf.close()
-                return True
+                print(data)
+                # On écrit les tweets dans un fichiers texte en continu
+                with open('C://wamp64//www//TWITTER//tweets json format//tweet_' + str(i) + '.json', 'a') as tf:
+                    tf.write(data)
+                    tf.write('\n')
+                    tf.close()
+            return True
 
         # Si ça ne marche pas, on retourne l'erreur
         except BaseException:
@@ -155,7 +157,7 @@ class TweetAnalyzer():
         
         return tw
 
-def open_json():
+def json_modifier():
     '''
     this function will be used to open all the json files in 'tweets json format' and improves the format 
     in order to keep the main information in the same json file.
@@ -181,7 +183,6 @@ def open_json():
                 formated_json = tweet_analyze.get_infos_tweets(data)
             
             with open(path + str(file), 'w') as f: 
-                print('on est la')
                 f.write(json.dumps(formated_json))
                 print(" Le fichier " + file + "a bien été mis au bon format")
 
@@ -205,8 +206,10 @@ def insert_infos_into_db():
             sql = "INSERT INTO tweets_streaming(`created_at`, `user_name`, `text_contenu`, `latitude`, `longitude`, `place`, `id_place`) VALUES(%s, %s, %s, %s, %s, %s, %s)"
             values = (tweet["dates"], tweet["user_name"], tweet["text"], tweet['latitude'], tweet['longitude'], tweet["place"]["name"],tweet["place"]["id"])
             curseur.execute(sql,values)
-	
 
+            # supprime les doublons
+            request = "DELETE tweets_streaming FROM tweets_streaming LEFT OUTER JOIN (SELECT MIN(id) as id, text_contenu FROM tweets_streaming GROUP BY text_contenu) AS table_1 ON tweets_streaming.id = table_1.id WHERE table_1.id IS NULL"
+            curseur.execute(request)
         conn.commit()
     return True
 
@@ -215,21 +218,30 @@ fetched_tweets_filename = 'tweets'
 clients = ['googlemaps', 'weliketravel','elonmusk','sct_r']
 
 
-hash_tag_list2 = ['Annecy','Chambéry','Grenoble','Toulouse','GoogleMaps','Paris', 'Marseille', 'Ascension'
-'Voiron','openstreetmap', 'geolocalization', 'géolocalisation', 'human', 'jobs', 'travel', 'innovation','Netflix']
+hash_tag_list2 = ['Annecy','Chambéry','Grenoble','Toulouse',
+'GoogleMaps','Paris', 'Marseille', 'Ascension',
+'Voiron','openstreetmap', 'geolocalization', 'géolocalisation', 
+'human', 'travel', 'innovation','Netflix']
 
-hash_tag_list = ['IvrysurSeine', 'Le Mans', 'KohLanta']
+hash_tag_list = ['IvrysurSeine', 'Le Mans', 'KohLanta','Annecy','Grenoble','Macron','confinement']
 
 def Stream__via_hash_tag_method():
     ##########    TWEET STREAM FROM HASH TAG    ##########
     twitter_streamer = TwitterStreamer()
-    twitter_streamer.stream_tweets(fetched_tweets_filename, hash_tag_list)
+    twitter_streamer.stream_tweets(fetched_tweets_filename, hash_tag_list2)
 
 
 
 if __name__ == "__main__":
-    Stream__via_hash_tag_method()
-    # print(insert_infos_into_db())
+    '''
+                PLAN
+        1- Stream tweets
+        2- mise en forme dans les fichiers json 
+        3- insert dans la database
+    '''
+    # Stream__via_hash_tag_method()
+    print(json_modifier())
+    print(insert_infos_into_db())
     
 
 
