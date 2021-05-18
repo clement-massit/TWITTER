@@ -3,7 +3,7 @@ set NAMES 'UTF8';
 
 DROP TABLE IF EXISTS tweets_streaming;
 CREATE TABLE tweets_streaming (
-    id_tweet int NOT NULL , 
+    id INT PRIMARY KEY AUTO_INCREMENT, 
     created_at varchar(100), 
     user_name varchar(100), 
     text_contenu varchar(255), 
@@ -20,6 +20,7 @@ CREATE TABLE tweets_streaming (
 
 DROP TABLE IF EXISTS polygon;
 CREATE TABLE polygon (
+    id INT PRIMARY KEY AUTO_INCREMENT,
     id_place varchar(100), 
     place varchar(100), 
     lat_1 varchar(100), 
@@ -29,9 +30,7 @@ CREATE TABLE polygon (
     lat_3 varchar(100), 
     long_3 varchar(100), 
     lat_4 varchar(100), 
-    long_4 varchar(100), 
-    lat_5 varchar(100),  
-    long_5 varchar(100)
+    long_4 varchar(100)
 );
 
 
