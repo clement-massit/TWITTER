@@ -36,7 +36,11 @@ stop_words.add(':')
 stop_words.add('.')
 stop_words.add('’')
 stop_words.add('#')
-
+stop_words.add('in')
+stop_words.add('a')
+stop_words.add('..')
+stop_words.add('?')
+stop_words.add('the')
 
 word_token = word_tokenize(data)
 filtre_stopfr =  lambda textes: [token for token in textes if token.lower() not in stop_words]
@@ -50,8 +54,8 @@ def list_word_most_common(city):
     for tweets in liste_tweets:
         caractere += tweets[3]
 
-    txt = filtre_stopfr(word_tokenize(caractere, language='french'))
-    print(txt)
+    txt = filtre_stopfr(word_tokenize(caractere, language='english'))
+    
     fd = nltk.FreqDist(txt) 
     most_common = fd.most_common()  
 

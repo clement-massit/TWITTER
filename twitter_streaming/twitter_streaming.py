@@ -116,8 +116,8 @@ class TwitterListener(StreamListener):
             tweet = json.loads(data) 
          
             if tweet["geo"] is not None:
-                print(tweet["geo"]["coordinates"][0],tweet["geo"]["coordinates"][1])
-                
+                # print(tweet["geo"]["coordinates"][0],tweet["geo"]["coordinates"][1])
+                print(get_geo_coord())
                 
                
 
@@ -244,12 +244,12 @@ def get_geo_coord():
             place = api.reverse_geocode(data["latitude"],data["longitude"])[0]
         
             
-
+# print(api.geo_id('Annecy'))
    
     
 
                 
-print(get_geo_coord())
+# print(get_geo_coord())
 
 i = 0
 fetched_tweets_filename = 'tweets'
@@ -286,7 +286,7 @@ if __name__ == "__main__":
         2- mise en forme dans les fichiers json 
         3- insert dans la database
     '''
-    # Stream__via_hash_tag_method()
+    Stream__via_hash_tag_method()
     # print(json_modifier())
     # print(insert_infos_into_db())
     
