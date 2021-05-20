@@ -1,5 +1,6 @@
 # Pour créer des data frames
 from datetime import time
+from mysql.connector import catch23
 import pandas as pd
 
 
@@ -15,7 +16,7 @@ try:
 except ImportError:
     import simplejson as json
 
-from tweepy import API 
+from tweepy import API, api 
 from tweepy import Cursor 
 
 # StreamListener est une classe de Tweepy qui nous permet d'écouter les tweets
@@ -43,6 +44,7 @@ class TwitterAuthenticator():
         auth = OAuthHandler(credentials.CONSUMER_KEY, credentials.CONSUMER_SECRET)
         auth.set_access_token(credentials.ACCESS_TOKEN, credentials.ACCESS_SECRET)
 
+
         return auth
 
 # Création d'une classe réservée à l'interaction avec le client Tiwtter
@@ -51,6 +53,8 @@ class TwitterClient():
 
     def __init__(self, twitter_user=None):
         self.auth = TwitterAuthenticator().authenticate_twitter_app()
+        self.api = API(self.auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
+
         self.twitter_client = API(self.auth)
 
         self.twitter_user = twitter_user
@@ -102,15 +106,22 @@ class TwitterListener(StreamListener):
 
     # Gère la récupération des données
     def on_data(self, data):
+        auth = OAuthHandler(credentials.CONSUMER_KEY, credentials.CONSUMER_SECRET)
+        auth.set_access_token(credentials.ACCESS_TOKEN, credentials.ACCESS_SECRET)
+        api = API(auth,wait_on_rate_limit=True,wait_on_rate_limit_notify=True,compression=True)
         global i
         i += 1 
         try:
             
-           
-            tweet = data.split('},"geo":')[1].split(',"coordinates"')[0]
-            if tweet != 'null':
+            tweet = json.loads(data) 
+         
+            if tweet["geo"] is not None:
+                print(tweet["geo"]["coordinates"][0],tweet["geo"]["coordinates"][1])
+                
+                
+               
 
-                print(data)
+                
                 # On écrit les tweets dans un fichiers texte en continu
                 with open('C://wamp64//www//TWITTER//tweets json format//tweet_' + str(i) + '.json', 'a') as tf:
                     tf.write(data)
@@ -120,7 +131,7 @@ class TwitterListener(StreamListener):
 
         # Si ça ne marche pas, on retourne l'erreur
         except BaseException:
-            print("Erreur dans on_data: %s" %str(BaseException))
+            print("Erreur dans on_data: %s" , BaseException)
         except KeyboardInterrupt:
             print("La recherce de Tweets via Streaming a été interrompue")
             
@@ -174,6 +185,7 @@ def json_modifier():
 
     
     for file in list_json:
+        
         try :
                 
             with open(path + str(file), 'r') as json_file:
@@ -181,7 +193,7 @@ def json_modifier():
                 data = json.load(json_file)
                 
                 formated_json = tweet_analyze.get_infos_tweets(data)
-            
+                
             with open(path + str(file), 'w') as f: 
                 f.write(json.dumps(formated_json))
                 print(" Le fichier " + file + "a bien été mis au bon format")
@@ -189,7 +201,6 @@ def json_modifier():
                 
             
         except KeyError:
-            
             print("Le fichier " + file + " est déjà au bon format")
 
     return True
@@ -213,6 +224,33 @@ def insert_infos_into_db():
         conn.commit()
     return True
 
+def get_geo_coord():
+    ############################################################################
+    # try to get the center of the cities
+    ############################################################################
+    auth = OAuthHandler(credentials.CONSUMER_KEY, credentials.CONSUMER_SECRET)
+    auth.set_access_token(credentials.ACCESS_TOKEN, credentials.ACCESS_SECRET)
+    api = API(auth,wait_on_rate_limit=True,wait_on_rate_limit_notify=True,compression=True)
+   
+    
+    path = "C://wamp64//www//TWITTER//tweets json format//"
+    #list_json is the list of all json files there are in the 'tweets json format'   
+    list_json = os.listdir(path)    
+    for file in list_json:
+        print(file)
+        with open(path + str(file), 'r') as json_file:
+            data = json.load(json_file)
+            print(data)
+            place = api.reverse_geocode(data["latitude"],data["longitude"])[0]
+        
+            
+
+   
+    
+
+                
+print(get_geo_coord())
+
 i = 0
 fetched_tweets_filename = 'tweets'
 clients = ['googlemaps', 'weliketravel','elonmusk','sct_r']
@@ -223,12 +261,21 @@ hash_tag_list2 = ['Annecy','Chambéry','Grenoble','Toulouse',
 'Voiron','openstreetmap', 'geolocalization', 'géolocalisation', 
 'human', 'travel', 'innovation','Netflix']
 
-hash_tag_list = ['IvrysurSeine', 'Le Mans', 'KohLanta','Annecy','Grenoble','Macron','confinement']
+hash_tag_list = ['France','Polytech','Ocean','Ville','Ecole',
+'Ingenieur','Annecy','Voyage','openstreetmap', 'NASA','doge',
+'Grenoble','Paris','Lyon','ia','adwords','RGPD',
+'CNIL','Cookie','Instagram','GoogleMaps']
+
+
+
+
+
+
 
 def Stream__via_hash_tag_method():
     ##########    TWEET STREAM FROM HASH TAG    ##########
     twitter_streamer = TwitterStreamer()
-    twitter_streamer.stream_tweets(fetched_tweets_filename, hash_tag_list2)
+    twitter_streamer.stream_tweets(fetched_tweets_filename, hash_tag_list)
 
 
 
@@ -240,8 +287,8 @@ if __name__ == "__main__":
         3- insert dans la database
     '''
     # Stream__via_hash_tag_method()
-    print(json_modifier())
-    print(insert_infos_into_db())
+    # print(json_modifier())
+    # print(insert_infos_into_db())
     
 
 

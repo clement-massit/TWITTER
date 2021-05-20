@@ -34,6 +34,7 @@ def get_polygon(path):
         coor = {}
         with open(path + str(file), 'r') as json_file:  
             data = json.load(json_file)
+            print(data)
             coor["coordinates"] = data["place"]["bounding_box"]["coordinates"]
             
         sql = "INSERT INTO polygon(`id_place`,`place`, `lat_1`, `long_1`, `lat_2`, `long_2`, `lat_3`, `long_3`, `lat_4`, `long_4`) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
@@ -56,6 +57,4 @@ def get_polygon(path):
     return True
 
 print(get_polygon(path))
-
-
 
