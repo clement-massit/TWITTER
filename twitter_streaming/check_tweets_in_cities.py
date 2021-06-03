@@ -28,7 +28,7 @@ conn = MySQLdb.connect(
     )
 curseur = conn.cursor()
 
-def check_tweets_in_city(city):
+def get_tweets_in_city(city):
 	c = 0
 	#first select
 	#this is tweets that we want to check if it is situated in a city
@@ -41,7 +41,7 @@ def check_tweets_in_city(city):
 		
 		if tweet[6] == city:
 			c += 1
-		
+			
 			tweets_to_be_studied.append(tweet)
 			
 			
@@ -51,4 +51,4 @@ def check_tweets_in_city(city):
 			
 	
 
-# print(check_tweets_in_city('Paris'))
+# print(get_tweets_in_city('Chabanais'))
