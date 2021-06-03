@@ -1,14 +1,19 @@
 import folium 
 import mysql.connector 
+from nominatim import Nominatim
+from tokenization import list_word_most_common
+from check_tweets_in_cities import get_tweets_in_city
 
 conn = mysql.connector.connect(user = 'root', host = 'localhost', database = 'db_twitter', charset = 'utf8mb4')
 curseur = conn.cursor()
 
-sql = 'SELECT `place`,`latitude`,`longitude`,`user_name` FROM tweets_streaming'
+sql = 'SELECT DISTINCT `place` FROM tweets_streaming'
 
 
 curseur.execute(sql)
 myresult = curseur.fetchall()
+
+
 
 m = folium.Map(location = [45,5], tiles = "OpenStreetMap", zoom_start = 5)
 
@@ -28,10 +33,7 @@ def transform_coord(place):
 	point5 = (float(place[1]),float(place[2]))
 		
 	return [point1, point2, point3, point4, point5]
-
-
-
-
+	
 #tracer les polygones représentants les cities
 
 for place in liste_places:
@@ -46,14 +48,48 @@ for place in liste_places:
 
 
 
-#ping les places de la table tweet_geo
-for geoloc in range(len(myresult)):
+
+import re
+nom = Nominatim()
+
+def get_city_center(city):
 	
+	
+	for c in city:
+		
+		if c == "é" or c == "è" or c == "ê" or c == "ë":
+			city = city.replace(c,"e")
+		if c == "à" or c == "â" or c == "ä":
+			city = city.replace(c,"a")
+		if c == "û" or c == "ù" or c == "ü":
+			city = city.replace(c,"u")	
+		if c == "î" or c == "ï":
+			city = city.replace(c,"i")	
+		if c == "ô" or c == "ö":
+			city = city.replace(c,"o")
+		if c == "ç":
+			city = city.replace(c,"c")	
+			
+	
+	place = nom.query(city)[0]
+
+
+	return [place["lat"], place["lon"]]
+
+
+for geoloc in myresult:
+	# print(geoloc[0])
+	# get_tweets_in_city(geoloc[0])
+	list_word_most_common(geoloc[0])
+
+#ping les places de la table tweet_geo
+for geoloc in myresult:
 	folium.Marker(
-		location = [myresult[geoloc][1],myresult[geoloc][2]],
+		location = get_city_center(geoloc[0]),
 		icon =folium.Icon(color =  'blue', icon = 'glyphicon glyphicon-circle-arrow-down'),
-		popup = myresult[geoloc][0]
+		popup = list_word_most_common(geoloc[0])
 		 ).add_to(m)
 	
 
 m.save("map.html")
+
