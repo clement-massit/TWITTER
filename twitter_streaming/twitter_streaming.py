@@ -78,17 +78,14 @@ class TwitterStreamer():
     def __init__(self):
         self.twitter_authenticator = TwitterAuthenticator()
 
-    # Prend en paramètre un filename d'un .txt qui contiendra nos tweets streamés 
-    def stream_tweets(self, feteched_tweets_filename, location):
+    
+    def stream_tweets(self, location):
         # Gère l'authentification et la connexion à l'API de streaming 
         listener = TwitterListener(fetched_tweets_filename)
         auth = self.twitter_authenticator.authenticate_twitter_app()
         
         # On instancie un objet de la classe Stream, qui va nous permettre de récupérer les tweets
         stream = Stream(auth, listener)
-        
-        
-        #locations=[2.224101,48.815521,2.469905, 48.902146]
         
         stream.filter(locations=location,languages=["fr"])
         
@@ -104,23 +101,29 @@ class TwitterListener(StreamListener):
     def __init__(self, fetched_tweets_filename):
         self.fetched_tweets_filename = fetched_tweets_filename
 
-    # Gère la récupération des données
+    # Gère la réception des données
     def on_data(self, data):
-        auth = OAuthHandler(credentials.CONSUMER_KEY, credentials.CONSUMER_SECRET)
-        auth.set_access_token(credentials.ACCESS_TOKEN, credentials.ACCESS_SECRET)
-        api = API(auth,wait_on_rate_limit=True,wait_on_rate_limit_notify=True,compression=True)
+        '''
+        Cette fonciton s'execute à la réception d'un tweet
+        '''
         global i
         i += 1 
         try:
-                 
+            coor = {}     
             tweet = json.loads(data) 
-         
+            coor["coordinates"] = tweet["place"]["bounding_box"]["coordinates"]
+
             if tweet["geo"] is not None:
                 print(
-                    tweet["created_at"],
-                    tweet["place"]["name"]
+                    tweet["created_at"], '\n',
+                    tweet["user"]["name"], '\n',
+                    tweet["text"], '\n',
+                    tweet["geo"]["coordinates"][0],'\n', 
+                    tweet["geo"]["coordinates"][1], '\n',
+                    tweet["place"]["name"],'\n',
+                    tweet["place"]["id"]
                     )
-
+                #on insère dans la base de données les infos liées a nos tweets
                 sql = "INSERT INTO tweets_streaming(`created_at`, `user_name`, `text_contenu`, `latitude`, `longitude`, `place`, `id_place`) VALUES(%s, %s, %s, %s, %s, %s, %s)"
                 values = (
                     tweet["created_at"],
@@ -131,29 +134,44 @@ class TwitterListener(StreamListener):
                     tweet["place"]["name"],
                     tweet["place"]["id"]
                     )
-                curseur.execute(sql,values)      
+                curseur.execute(sql,values)             
+               
+
+               #On insère dans la base de donné les infos liées aux polygon
+                sql_polygon = "INSERT INTO polygon(`id_place`,`place`, `lat_1`, `long_1`, `lat_2`, `long_2`, `lat_3`, `long_3`, `lat_4`, `long_4`) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+                values_polygon = (
+                    tweet["place"]["id"],
+                    tweet["place"]["name"], 
+                    coor["coordinates"][0][0][1],
+                    coor["coordinates"][0][0][0],
+                    coor["coordinates"][0][1][1],
+                    coor["coordinates"][0][1][0],
+                    coor["coordinates"][0][2][1],
+                    coor["coordinates"][0][2][0],
+                    coor["coordinates"][0][3][1],
+                    coor["coordinates"][0][3][0])
+                curseur.execute(sql_polygon,values_polygon)    
 
                 conn.commit()
-                # On écrit les tweets dans un fichiers texte en continu
-                # with open('C://wamp64//www//TWITTER//tweets json format//tweet_' + str(i) + '.json', 'a') as tf:
-                #     tf.write(data)
-                #     tf.write('\n')
-                #     tf.close()
+              
                 
 
             return True
 
         # Si ça ne marche pas, on retourne l'erreur
-        except BaseException:
-            print("Erreur dans on_data: %s" , BaseException)
-        except KeyboardInterrupt:
+
+        except KeyboardInterrupt or BaseException:
             print("La recherce de Tweets via Streaming a été interrompue")
-            sys.exit(0)
+           
+        # except BaseException:
+        #     print("Erreur dans on_data: %s" , BaseException)
+        
             
         return True
     
     # méthode qui intervient lorsqu'il y a une erreur
     def on_error(self, status): 
+
         # L'erreur 420 correspond à la rate limit, comme ça si on a un pb on sait tout de suite s'il s'agit de la rate limit ou non         
         if status == 420:
             return False
@@ -182,43 +200,6 @@ class TweetAnalyzer():
 
         
         return tw
-
-def json_modifier():
-    '''
-    this function will be used to open all the json files in 'tweets json format' and improves the format 
-    in order to keep the main information in the same json file.
-    for each 'file', we open it in order to get information then we use the 'get_infos_tweets()' function in order to 
-    improve the format
-    then we open the 'file' as writting method and replace the older information by the newest and then we will insert this into database
-    '''
-    tweet_analyze = TweetAnalyzer()
-    path = "C://wamp64//www//TWITTER//tweets json format//"
-
-    
-    #list_json is the list of all json files there are in the 'tweets json format'   
-    list_json = os.listdir(path)
-
-    
-    for file in list_json:
-        
-        try :
-                
-            with open(path + str(file), 'r') as json_file:
-                
-                data = json.load(json_file)
-                
-                formated_json = tweet_analyze.get_infos_tweets(data)
-                
-            with open(path + str(file), 'w') as f: 
-                f.write(json.dumps(formated_json))
-                print(" Le fichier " + file + "a bien été mis au bon format")
-
-                
-            
-        except KeyError:
-            print("Le fichier " + file + " est déjà au bon format")
-
-    return True
 
 def insert_infos_into_db():
     path = "C://wamp64//www//TWITTER//tweets json format//"
@@ -290,15 +271,14 @@ Paris = [2.1052551, 48.7525672, 2.6106262, 48.9576789]
 def Stream__via_hash_tag_method():
     ##########    TWEET STREAM FROM HASH TAG    ##########
     twitter_streamer = TwitterStreamer()
-    twitter_streamer.stream_tweets(fetched_tweets_filename, Paris)
+    twitter_streamer.stream_tweets(Grenoble)
 
 
 
 if __name__ == "__main__":
     
     Stream__via_hash_tag_method()
-    # print(json_modifier())
-    # print(insert_infos_into_db())
+   
     
 
 
