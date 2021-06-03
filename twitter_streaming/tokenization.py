@@ -4,7 +4,7 @@ from nltk.tokenize import sent_tokenize
 import nltk
 import re
 import mysql.connector 
-from check_key_words import check_tweets_in_city
+from check_tweets_in_cities import check_tweets_in_city
 
 data = """@@@@ [ https://Wikipédia est le le le un projet wiki d’encyclopédie 
 collective en ligne, universelle, multilingue et fonctionnant sur le 

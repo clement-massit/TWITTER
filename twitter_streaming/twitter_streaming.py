@@ -79,7 +79,7 @@ class TwitterStreamer():
         self.twitter_authenticator = TwitterAuthenticator()
 
     # Prend en paramètre un filename d'un .txt qui contiendra nos tweets streamés 
-    def stream_tweets(self, feteched_tweets_filename, hash_tag_list):
+    def stream_tweets(self, feteched_tweets_filename, location):
         # Gère l'authentification et la connexion à l'API de streaming 
         listener = TwitterListener(fetched_tweets_filename)
         auth = self.twitter_authenticator.authenticate_twitter_app()
@@ -88,9 +88,9 @@ class TwitterStreamer():
         stream = Stream(auth, listener)
         
         
-        # On se doit de trier les tweets que l'on souhaite récupérer, on utiliser ainsi la méthode filter de la classe Stream
-        # La liste track est une liste de keywords 
-        stream.filter(track = hash_tag_list)
+        #locations=[2.224101,48.815521,2.469905, 48.902146]
+        
+        stream.filter(locations=location,languages=["fr"])
         
 
 
@@ -112,21 +112,35 @@ class TwitterListener(StreamListener):
         global i
         i += 1 
         try:
-            
+                 
             tweet = json.loads(data) 
          
             if tweet["geo"] is not None:
-                # print(tweet["geo"]["coordinates"][0],tweet["geo"]["coordinates"][1])
-                print(get_geo_coord())
-                
-               
+                print(
+                    tweet["created_at"],
+                    tweet["place"]["name"]
+                    )
 
-                
+                sql = "INSERT INTO tweets_streaming(`created_at`, `user_name`, `text_contenu`, `latitude`, `longitude`, `place`, `id_place`) VALUES(%s, %s, %s, %s, %s, %s, %s)"
+                values = (
+                    tweet["created_at"],
+                    tweet["user"]["name"], 
+                    tweet["text"], 
+                    tweet["geo"]["coordinates"][0], 
+                    tweet["geo"]["coordinates"][1], 
+                    tweet["place"]["name"],
+                    tweet["place"]["id"]
+                    )
+                curseur.execute(sql,values)      
+
+                conn.commit()
                 # On écrit les tweets dans un fichiers texte en continu
-                with open('C://wamp64//www//TWITTER//tweets json format//tweet_' + str(i) + '.json', 'a') as tf:
-                    tf.write(data)
-                    tf.write('\n')
-                    tf.close()
+                # with open('C://wamp64//www//TWITTER//tweets json format//tweet_' + str(i) + '.json', 'a') as tf:
+                #     tf.write(data)
+                #     tf.write('\n')
+                #     tf.close()
+                
+
             return True
 
         # Si ça ne marche pas, on retourne l'erreur
@@ -134,6 +148,7 @@ class TwitterListener(StreamListener):
             print("Erreur dans on_data: %s" , BaseException)
         except KeyboardInterrupt:
             print("La recherce de Tweets via Streaming a été interrompue")
+            sys.exit(0)
             
         return True
     
@@ -268,24 +283,19 @@ hash_tag_list = ['France','Polytech','Ocean','Ville','Ecole',
 
 
 
-
-
-
+France = [-4.67, 42, 8, 51.1485061713]
+Grenoble = [5.6250000,45.1345864,5.8090210,45.2425030]
+Paris = [2.1052551, 48.7525672, 2.6106262, 48.9576789]
 
 def Stream__via_hash_tag_method():
     ##########    TWEET STREAM FROM HASH TAG    ##########
     twitter_streamer = TwitterStreamer()
-    twitter_streamer.stream_tweets(fetched_tweets_filename, hash_tag_list)
+    twitter_streamer.stream_tweets(fetched_tweets_filename, Paris)
 
 
 
 if __name__ == "__main__":
-    '''
-                PLAN
-        1- Stream tweets
-        2- mise en forme dans les fichiers json 
-        3- insert dans la database
-    '''
+    
     Stream__via_hash_tag_method()
     # print(json_modifier())
     # print(insert_infos_into_db())
