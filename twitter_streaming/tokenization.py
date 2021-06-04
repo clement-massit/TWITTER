@@ -41,6 +41,7 @@ stop_words.add('?')
 stop_words.add('!')
 stop_words.add('(')
 stop_words.add(')')
+stop_words.add(']')
 
 
 filtre_stopfr =  lambda textes: [token for token in textes if token.lower() not in stop_words]
@@ -52,7 +53,7 @@ def list_word_most_common(city):
     caractere = ""
     liste_common_words = []
     if len(liste_tweets) != 0:
-        print("\n", city)
+        
         for tweets in liste_tweets:
             
             caractere += tweets[3][:-23]
@@ -61,7 +62,7 @@ def list_word_most_common(city):
         
         fd = nltk.FreqDist(txt) 
         most_common = fd.most_common()  
-        print(most_common)
+        
         for mot in most_common:
             liste_common_words.append(mot[0])
         if len(liste_common_words) < 10:
@@ -71,4 +72,4 @@ def list_word_most_common(city):
         
     return liste_common_words   
 
-print(list_word_most_common('Paris'))
+# print(list_word_most_common('Paris'))
