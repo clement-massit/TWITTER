@@ -69,26 +69,42 @@ def get_city_center(city):
 			city = city.replace(c,"o")
 		if c == "ç":
 			city = city.replace(c,"c")	
-			
-	
-	place = nom.query(city)[0]
 
+	place = nom.query(city)[0]
 
 	return [place["lat"], place["lon"]]
 
-
 for geoloc in myresult:
-	# print(geoloc[0])
-	# get_tweets_in_city(geoloc[0])
-	list_word_most_common(geoloc[0])
+	print(geoloc[0])
+	if len(list_word_most_common(geoloc[0])) > 9:
+		for mot in(list_word_most_common(geoloc[0])):
+			html=f"""
+			
+			<h1> {geoloc[0]}</h1>
+			<p>Here is a list of most used words :</p>
+			<ul>
+				<li>{list_word_most_common(geoloc[0])[0]}</li>
+				<li>{list_word_most_common(geoloc[0])[1]}</li>
+				<li>{list_word_most_common(geoloc[0])[2]}</li>
+				<li>{list_word_most_common(geoloc[0])[3]}</li>
+				<li>{list_word_most_common(geoloc[0])[4]}</li>
+				<li>{list_word_most_common(geoloc[0])[5]}</li>
+				<li>{list_word_most_common(geoloc[0])[6]}</li>
+				<li>{list_word_most_common(geoloc[0])[7]}</li>
+				<li>{list_word_most_common(geoloc[0])[8]}</li>
+				<li>{list_word_most_common(geoloc[0])[9]}</li>
+			</ul>
+			</p>
 
-#ping les places de la table tweet_geo
-for geoloc in myresult:
-	folium.Marker(
-		location = get_city_center(geoloc[0]),
-		icon =folium.Icon(color =  'blue', icon = 'glyphicon glyphicon-circle-arrow-down'),
-		popup = list_word_most_common(geoloc[0])
-		 ).add_to(m)
+        	
+			"""
+		folium.Marker(
+			location = get_city_center(geoloc[0]),
+			icon =folium.Icon(color =  'lightgreen', icon = "info-sign"),
+			popup = html
+			).add_to(m)
+
+
 	
 
 m.save("map.html")
