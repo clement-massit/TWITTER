@@ -47,7 +47,7 @@ class TwitterAuthenticator():
 
         return auth
 
-# Création d'une classe réservée à l'interaction avec le client Tiwtter
+# Création d'une classe réservée à l'interaction avec le client Twitter
 
 class TwitterClient():
 
@@ -106,8 +106,7 @@ class TwitterListener(StreamListener):
         '''
         Cette fonciton s'execute à la réception d'un tweet
         '''
-        global i
-        i += 1 
+        
         try:
             coor = {}     
             tweet = json.loads(data) 
@@ -201,51 +200,18 @@ class TweetAnalyzer():
         
         return tw
 
-def insert_infos_into_db():
-    path = "C://wamp64//www//TWITTER//tweets json format//"
-    #list_json is the list of all json files there are in the 'tweets json format'   
-    list_json = os.listdir(path)    
-    for file in list_json:
-        with open(path + str(file), 'r') as json_file:
-            tweet = json.load(json_file)
-            
-            # Requête SQL (a quoter si on veut pas insérer dans la base de données)    
-            sql = "INSERT INTO tweets_streaming(`created_at`, `user_name`, `text_contenu`, `latitude`, `longitude`, `place`, `id_place`) VALUES(%s, %s, %s, %s, %s, %s, %s)"
-            values = (tweet["dates"], tweet["user_name"], tweet["text"], tweet['latitude'], tweet['longitude'], tweet["place"]["name"],tweet["place"]["id"])
-            curseur.execute(sql,values)
+def delete_doublons_polygon():
+    request = "DELETE polygon FROM polygon LEFT OUTER JOIN (SELECT MIN(id) as id, id_place FROM polygon GROUP BY id_place) AS table_1 ON polygon.id = table_1.id WHERE table_1.id IS NULL"
+    curseur.execute(request)
+    conn.commit()
+    return True 
 
-            # supprime les doublons
-            request = "DELETE tweets_streaming FROM tweets_streaming LEFT OUTER JOIN (SELECT MIN(id) as id, text_contenu FROM tweets_streaming GROUP BY text_contenu) AS table_1 ON tweets_streaming.id = table_1.id WHERE table_1.id IS NULL"
-            curseur.execute(request)
-        conn.commit()
-    return True
+def delete_doublons_tweets():
+    request = "DELETE tweets_streaming FROM tweets_streaming LEFT OUTER JOIN (SELECT MIN(id) as id, text_contenu FROM tweets_streaming GROUP BY text_contenu) AS table_1 ON tweets_streaming.id = table_1.id WHERE table_1.id IS NULL"
+    curseur.execute(request)
+    conn.commit()  
+    return True       
 
-def get_geo_coord():
-    ############################################################################
-    # try to get the center of the cities
-    ############################################################################
-    auth = OAuthHandler(credentials.CONSUMER_KEY, credentials.CONSUMER_SECRET)
-    auth.set_access_token(credentials.ACCESS_TOKEN, credentials.ACCESS_SECRET)
-    api = API(auth,wait_on_rate_limit=True,wait_on_rate_limit_notify=True,compression=True)
-   
-    
-    path = "C://wamp64//www//TWITTER//tweets json format//"
-    #list_json is the list of all json files there are in the 'tweets json format'   
-    list_json = os.listdir(path)    
-    for file in list_json:
-        print(file)
-        with open(path + str(file), 'r') as json_file:
-            data = json.load(json_file)
-            print(data)
-            place = api.reverse_geocode(data["latitude"],data["longitude"])[0]
-        
-            
-# print(api.geo_id('Annecy'))
-   
-    
-
-                
-# print(get_geo_coord())
 
 i = 0
 fetched_tweets_filename = 'tweets'
@@ -271,12 +237,12 @@ Paris = [2.1052551, 48.7525672, 2.6106262, 48.9576789]
 def Stream__via_hash_tag_method():
     ##########    TWEET STREAM FROM HASH TAG    ##########
     twitter_streamer = TwitterStreamer()
-    twitter_streamer.stream_tweets(Grenoble)
+    twitter_streamer.stream_tweets(France)
 
 
 
 if __name__ == "__main__":
-    
+    print(delete_doublons_polygon())
     Stream__via_hash_tag_method()
    
     
