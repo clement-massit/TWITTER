@@ -42,7 +42,8 @@ stop_words.add('!')
 stop_words.add('(')
 stop_words.add(')')
 stop_words.add(']')
-
+stop_words.add(';')
+stop_words.add('&')
 
 filtre_stopfr =  lambda textes: [token for token in textes if token.lower() not in stop_words]
 
