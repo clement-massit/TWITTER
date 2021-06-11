@@ -34,7 +34,7 @@ pip install nominatim
 ## How to install  
 Clone the repository : 
 ```
-git clone https://github.com/clement-massit/Decodage-Huffman
+git clone https://github.com/clement-massit/TWITTER
 ```  
 Then if you just want to see the current tweets on the map, you just have to open the map.html file in order to see what we already streamed.
 
